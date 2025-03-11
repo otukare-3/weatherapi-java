@@ -3,6 +3,7 @@ package com.example.weather_api.service;
 import com.example.weather_api.dto.WeatherResponse;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +14,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class WeatherService {
 
-  private static final String API_URL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/japan";
+  private static final String API_URL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/";
 
   @Value("${weather.api.key}")
   private String apiKey;
 
-  public WeatherResponse getWeather() {
+  @Cacheable(value = "weather", key = "#location", unless = "#result == null")
+  public WeatherResponse getWeather(String location) {
     RestTemplate restTemplate = new RestTemplate();
 
-    String url = UriComponentsBuilder.fromUriString(API_URL)
+    String url = UriComponentsBuilder.fromUriString(API_URL + location)
         .queryParam("key", apiKey)
         .queryParam("unitGroup", "metric")
         .queryParam("include", "current")
